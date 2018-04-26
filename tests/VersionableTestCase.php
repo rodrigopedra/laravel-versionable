@@ -3,14 +3,18 @@
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 abstract class VersionableTestCase extends PHPUnitTestCase
 {
+    const DB_CONNECTION_NAME = 'default';
+
     public function setUp()
     {
         $this->configureDatabase();
         $this->migrateUsersTable();
+        $this->configureConfigFacade();
     }
 
     protected function configureDatabase()
@@ -22,7 +26,7 @@ abstract class VersionableTestCase extends PHPUnitTestCase
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix'    => '',
-        ] );
+        ], self::DB_CONNECTION_NAME );
         $db->setEventDispatcher( new Dispatcher( new Container ) );
         $db->bootEloquent();
         $db->setAsGlobal();
@@ -51,5 +55,16 @@ abstract class VersionableTestCase extends PHPUnitTestCase
 
             $table->timestamps();
         } );
+    }
+
+    private function configureConfigFacade()
+    {
+        Config::shouldReceive( 'get' )
+            ->with( 'database.default' )
+            ->andReturn( self::DB_CONNECTION_NAME );
+
+        Config::shouldReceive( 'get' )
+            ->with( 'versionable.connection', self::DB_CONNECTION_NAME )
+            ->andReturn( self::DB_CONNECTION_NAME );
     }
 }

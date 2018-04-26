@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
 
 /**
  * Class Version
@@ -120,5 +121,17 @@ class Version extends Eloquent
         }
 
         return $diffArray;
+    }
+
+    public function getConnectionName()
+    {
+        if (!isset( $this->connection )) {
+            $defaultConnection = Config::get( 'database.default' );
+            $connection        = Config::get( 'versionable.connection', $defaultConnection );
+
+            $this->setConnection( $connection );
+        }
+
+        return parent::getConnectionName();
     }
 }

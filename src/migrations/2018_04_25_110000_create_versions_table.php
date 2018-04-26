@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 class CreateVersionsTable extends Migration
@@ -13,7 +14,9 @@ class CreateVersionsTable extends Migration
      */
     public function up()
     {
-        Schema::create( 'versions', function ( Blueprint $table ) {
+        $connection = $this->getConnectionName();
+
+        Schema::connection( $connection )->create( 'versions', function ( Blueprint $table ) {
             $table->increments( 'version_id' );
 
             $table->morphs( 'versionable' );
@@ -33,6 +36,15 @@ class CreateVersionsTable extends Migration
      */
     public function down()
     {
-        Schema::drop( 'versions' );
+        $connection = $this->getConnectionName();
+
+        Schema:: connection( $connection )->drop( 'versions' );
+    }
+
+    private function getConnectionName()
+    {
+        $defaultConnection = Config::get( 'database.default' );
+
+        return Config::get( 'versionable.connection', $defaultConnection );
     }
 }
