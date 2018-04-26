@@ -1,39 +1,55 @@
 {
-    "name": "mpociot/versionable",
+    "name": "rodrigopedra/laravel-versionable",
     "license": "MIT",
-    "description": "Allows to create Laravel 4 / 5 Model versioning and restoring",
-    "keywords": ["model", "laravel", "ardent", "version", "history", "restore"],
-    "homepage": "http://github.com/mpociot/versionable",
+    "description": "Allows to create Laravel 5.6 Model versioning and restoring",
+    "keywords": [
+        "model",
+        "laravel",
+        "version",
+        "history",
+        "restore"
+    ],
+    "homepage": "http://github.com/rodrigopedra/laravel-versionable",
     "authors": [
+        {
+            "name": "Rodrigo Pedra Brum",
+            "email": "rodrigo.pedra@gmail.com"
+        },
         {
             "name": "Marcel Pociot",
             "email": "m.pociot@gmail.com"
         }
     ],
     "support": {
-        "issues": "https://github.com/mpociot/versionable/issues",
-        "source": "https://github.com/mpociot/versionable"
+        "issues": "https://github.com/rodrigopedra/laravel-versionable/issues",
+        "source": "https://github.com/rodrigopedra/laravel-versionable"
     },
     "require": {
-        "php": ">=5.3.0",
-        "illuminate/support": "~4.0|~5.0"
+        "php": "^7.1.3",
+        "illuminate/support": "^5.6",
+        "illuminate/database": "^5.6"
     },
     "require-dev": {
-        "phpunit/phpunit": "4.7.*",
+        "phpunit/phpunit": "^7.0",
         "mockery/mockery": "dev-master",
-        "illuminate/database": "~5.0",
-        "illuminate/events": "~5.0"
+        "illuminate/events": "^5.6"
     },
     "autoload": {
         "classmap": [
-            "src/migrations",
             "tests/VersionableTestCase.php"
         ],
-        "psr-0": {
-            "Mpociot\\Versionable": "src/"
+        "psr-4": {
+            "RodrigoPedra\\": "src/"
         }
     },
     "scripts": {
         "test": "phpunit"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RodrigoPedra\\LaravelVersionable\\VersionableServiceProvider"
+            ]
+        }
     }
 }
