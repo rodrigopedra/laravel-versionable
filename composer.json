@@ -48,7 +48,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "RodrigoPedra\\LaravelVersionable\\VersionableServiceProvider"
+                "RodrigoPedra\\LaravelVersionable\\LaravelVersionableServiceProvider"
             ]
         }
     }

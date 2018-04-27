@@ -1,9 +1,13 @@
 <?php
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Mockery as m;
+use RodrigoPedra\LaravelVersionable\Versionable;
+use RodrigoPedra\LaravelVersionable\VersionableTrait;
 
 class VersionableTest extends VersionableTestCase
 {
@@ -296,18 +300,18 @@ class VersionableTest extends VersionableTestCase
         $user->last_login = $user->freshTimestamp();
         $user->save();
 
-        $user_id = $user->getKey();
+        $userId = $user->getKey();
 
         $user->name = 'John';
         $user->save();
 
-        $newUser = TestVersionableSoftDeleteUser::find( $user_id );
+        $newUser = TestVersionableSoftDeleteUser::find( $userId );
         $this->assertEquals( 'John', $newUser->name );
 
-        // Fetch first version and revert ist
+        // Fetch first version and revert it
         $reverted = $newUser->versions()->first()->revert();
 
-        $newUser = TestVersionableSoftDeleteUser::find( $user_id );
+        $newUser = TestVersionableSoftDeleteUser::find( $userId );
         $this->assertEquals( 'Rodrigo', $reverted->name );
         $this->assertEquals( 'Rodrigo', $newUser->name );
     }
@@ -345,12 +349,12 @@ class VersionableTest extends VersionableTestCase
             ->andReturn( false );
 
         // Create 3 versions
-        $user             = new TestVersionableUser();
-        $user->name       = 'Rodrigo';
-        $user->email      = 'rodrigo@example.com';
-        $user->password   = '12345';
-        $user->last_login = $user->freshTimestamp();
-        $user->reason     = 'Doing tests';
+        $user                    = new TestVersionableUser();
+        $user->name              = 'Rodrigo';
+        $user->email             = 'rodrigo@example.com';
+        $user->password          = '12345';
+        $user->last_login        = $user->freshTimestamp();
+        $user->versioning_reason = 'Doing tests';
         $user->save();
 
         $this->assertEquals( 'Doing tests', $user->currentVersion()->reason );
@@ -415,7 +419,6 @@ class VersionableTest extends VersionableTestCase
         sleep( 1 );
 
         $user->name       = 'John';
-        $user->created_at = Carbon::now();
         $user->updated_at = Carbon::now();
         $user->deleted_at = Carbon::now();
         $user->save();
@@ -463,32 +466,33 @@ class VersionableTest extends VersionableTestCase
         $this->assertCount( 1, $diff );
         $this->assertEquals( 'John', $diff[ 'name' ] );
     }
-
 }
 
 /**
  * Class TestVersionableUser
  *
- * @property string $reason
+ * @property string $versioningReason
  */
-class TestVersionableUser extends Illuminate\Database\Eloquent\Model
+class TestVersionableUser extends Model implements Versionable
 {
-    use RodrigoPedra\LaravelVersionable\VersionableTrait;
+    use VersionableTrait;
 
     protected $table = 'users';
 }
 
-class TestVersionableSoftDeleteUser extends Illuminate\Database\Eloquent\Model
+class TestVersionableSoftDeleteUser extends Model implements Versionable
 {
-    use RodrigoPedra\LaravelVersionable\VersionableTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
+    use VersionableTrait;
+    use SoftDeletes;
 
     protected $table = 'users';
+
+    protected $dontVersionFields = [ 'deleted_at' ];
 }
 
-class TestPartialVersionableUser extends Illuminate\Database\Eloquent\Model
+class TestPartialVersionableUser extends Model implements Versionable
 {
-    use RodrigoPedra\LaravelVersionable\VersionableTrait;
+    use VersionableTrait;
 
     protected $table = 'users';
 

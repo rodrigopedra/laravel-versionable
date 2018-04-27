@@ -3,7 +3,6 @@
 namespace RodrigoPedra\LaravelVersionable;
 
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class VersionableTrait
@@ -13,26 +12,11 @@ use Illuminate\Support\Facades\Auth;
 trait VersionableTrait
 {
     /**
-     * Private variable to detect if this is an update
-     * or an insert
-     *
-     * @var bool
-     */
-    private $updating;
-
-    /**
-     * Contains all dirty data that is valid for versioning
-     *
-     * @var array
-     */
-    private $versionableDirtyData;
-
-    /**
      * Optional reason, why this version was created
      *
      * @var string
      */
-    private $reason;
+    private $versioningReason;
 
     /**
      * Flag that determines if the model allows versioning at all
@@ -40,6 +24,13 @@ trait VersionableTrait
      * @var bool
      */
     protected $versioningEnabled = true;
+
+    /**
+     * Version factory helper
+     *
+     * @var VersionFactory
+     */
+    protected $versionFactory;
 
     /**
      * @return $this
@@ -62,28 +53,101 @@ trait VersionableTrait
     }
 
     /**
-     * Attribute mutator for "reason"
-     * Prevent "reason" to become a database attribute of model
+     * Check if it should create a new version
      *
-     * @param string $value
+     * @return bool
      */
-    public function setReasonAttribute( $value )
+    public function shouldCreateNewVersion()
     {
-        $this->reason = $value;
+        if ($this->versioningEnabled !== true) {
+            return false;
+        }
+
+        if (!$this->exists) {
+            return true;
+        }
+
+        $removeableKeys = $this->getDontVersionFields();
+
+        return count( array_diff_key( $this->getDirty(), array_flip( $removeableKeys ) ) ) > 0;
     }
 
     /**
-     * Initialize model events
+     * @param VersionFactory $versionFactory |null
+     *
+     * @return void
      */
-    public static function bootVersionableTrait()
+    public function setVersionFactory( VersionFactory $versionFactory = null )
     {
-        static::saving( function ( self $model ) {
-            $model->versionablePreSave();
-        } );
+        $this->versionFactory = $versionFactory;
+    }
 
-        static::saved( function ( self $model ) {
-            $model->versionablePostSave();
-        } );
+    /**
+     * @return VersionFactory
+     */
+    public function getVersionFactory()
+    {
+        return $this->versionFactory;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDontVersionFields()
+    {
+        $dontVersionFields = $this->dontVersionFields ?? [];
+
+        return array_merge( $dontVersionFields, [ $this->getUpdatedAtColumn() ] );
+    }
+
+    /**
+     * Attribute mutator for "versioningReason"
+     * Prevent "versioningReason" to become a database attribute of model
+     *
+     * @param string $value
+     */
+    public function setVersioningReasonAttribute( $value )
+    {
+        $this->versioningReason = $value;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getVersioningReason()
+    {
+        $versioningReason = trim( $this->versioningReason );
+
+        if (empty( $versioningReason )) {
+            return null;
+        }
+
+        return $versioningReason;
+    }
+
+    /**
+     * Get model's attributes serialized for versoning
+     *
+     * @return mixed
+     */
+    public function serializedAttributesForVersioning()
+    {
+        return serialize( $this->getAttributes() );
+    }
+
+    /**
+     * Unserialize the model's attributes from versioning
+     *
+     * @param mixed $serializedAttributes
+     *
+     * @return $this
+     */
+    public function unserializeAttributesFromVersoning( $serializedAttributes )
+    {
+        $this->forceFill( unserialize( $serializedAttributes ) );
+        $this->exists = true;
+
+        return $this;
     }
 
     /**
@@ -119,14 +183,14 @@ trait VersionableTrait
     /**
      * Get a model based on the version id
      *
-     * @param $version_id
+     * @param $versionId
      *
-     * @return $this|null
+     * @return Versionable|null
      */
-    public function getVersionModel( $version_id )
+    public function getVersionModel( $versionId )
     {
         /** @var  Version $version */
-        $version = $this->versions()->where( 'version_id', $version_id )->first();
+        $version = $this->versions()->where( 'version_id', $versionId )->first();
 
         if (!is_null( $version )) {
             return $version->getModel();
@@ -135,75 +199,8 @@ trait VersionableTrait
         return null;
     }
 
-    /**
-     * Pre save hook to determine if versioning is enabled and if we're updating
-     * the model
-     *
-     * @return void
-     */
-    protected function versionablePreSave()
+    public static function bootVersionableTrait()
     {
-        if ($this->versioningEnabled === true) {
-            $this->versionableDirtyData = $this->getDirty();
-            $this->updating             = $this->exists;
-        }
-    }
-
-    /**
-     * Save a new version.
-     *
-     * @return void
-     */
-    protected function versionablePostSave()
-    {
-        /**
-         * We'll save new versions on updating and first creation
-         */
-        if (
-            ( $this->versioningEnabled === true && $this->updating && $this->isValidForVersioning() )
-            || ( $this->versioningEnabled === true && !$this->updating && count( $this->versionableDirtyData ) )
-        ) {
-            // Save a new version
-            $version                   = new Version();
-            $version->versionable_id   = $this->getKey();
-            $version->versionable_type = static::class;
-            $version->user_id          = $this->getAuthUserId();
-            $version->model_data       = serialize( $this->getAttributes() );
-
-            if (!empty( $this->reason )) {
-                $version->reason = $this->reason;
-            }
-
-            $version->save();
-        }
-    }
-
-    /**
-     * Determine if a new version should be created for this model.
-     *
-     * @return bool
-     */
-    private function isValidForVersioning()
-    {
-        $dontVersionFields = isset( $this->dontVersionFields ) ? $this->dontVersionFields : [];
-        $removeableKeys    = array_merge( $dontVersionFields, [ $this->getUpdatedAtColumn() ] );
-
-        if (method_exists( $this, 'getDeletedAtColumn' )) {
-            $removeableKeys[] = $this->getDeletedAtColumn();
-        }
-
-        return ( count( array_diff_key( $this->versionableDirtyData, array_flip( $removeableKeys ) ) ) > 0 );
-    }
-
-    /**
-     * @return int|null
-     */
-    protected function getAuthUserId()
-    {
-        if (Auth::check()) {
-            return Auth::id();
-        }
-
-        return null;
+        static::observe( VersionableObserver::class );
     }
 }

@@ -2,11 +2,9 @@
 
 namespace RodrigoPedra\LaravelVersionable;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Config;
 
 /**
  * Class Version
@@ -24,6 +22,23 @@ class Version extends Eloquent
      * @var string
      */
     protected $primaryKey = 'version_id';
+
+    protected $casts = [
+        'version_id'     => 'integer',
+        'versionable_id' => 'integer',
+        'user_id'        => 'integer',
+        'model_data'     => 'json',
+    ];
+
+    protected $fillable = [
+        'user_id',
+        'action',
+        'model_data',
+        'reason',
+        'url',
+        'ip_address',
+        'user_agent',
+    ];
 
     /**
      * Sets up the relation
@@ -52,7 +67,7 @@ class Version extends Eloquent
     /**
      * Return the versioned model
      *
-     * @return Model
+     * @return Versionable
      */
     public function getModel()
     {
@@ -62,29 +77,24 @@ class Version extends Eloquent
 
         $modelClass = Relation::getMorphedModel( $this->versionable_type ) ?: $this->versionable_type;
 
-        /** @var  \Illuminate\Database\Eloquent\Model $model */
-        $model = new $modelClass;
-
-        $model->forceFill( unserialize( $modelData ) );
-        $model->exists = true;
-
-        return $model;
+        return tap( new $modelClass, function ( Versionable $versionable ) use ( $modelData ) {
+            $versionable->unserializeAttributesFromVersoning( $modelData );
+        } );
     }
 
     /**
      * Revert to the stored model version make it the current version
      *
-     * @return Model
+     * @return Versionable
      */
     public function revert()
     {
         $model = $this->getModel();
 
-        unset( $model->{$model->getCreatedAtColumn()} );
-        unset( $model->{$model->getUpdatedAtColumn()} );
+        $dontVersionFields = $model->getDontVersionFields();
 
-        if (method_exists( $model, 'getDeletedAtColumn' )) {
-            unset( $model->{$model->getDeletedAtColumn()} );
+        foreach ($dontVersionFields as $field) {
+            unset( $model->{$field} );
         }
 
         $model->save();
@@ -102,7 +112,8 @@ class Version extends Eloquent
      */
     public function diff( Version $againstVersion = null )
     {
-        $model = $this->getModel();
+        $model             = $this->getModel();
+        $dontVersionFields = $model->getDontVersionFields();
 
         $diff = $againstVersion
             ? $againstVersion->getModel()
@@ -110,28 +121,12 @@ class Version extends Eloquent
 
         $diffArray = array_diff_assoc( $diff->getAttributes(), $model->getAttributes() );
 
-        if (isset( $diffArray[ $model->getCreatedAtColumn() ] )) {
-            unset( $diffArray[ $model->getCreatedAtColumn() ] );
-        }
-        if (isset( $diffArray[ $model->getUpdatedAtColumn() ] )) {
-            unset( $diffArray[ $model->getUpdatedAtColumn() ] );
-        }
-        if (method_exists( $model, 'getDeletedAtColumn' ) && isset( $diffArray[ $model->getDeletedAtColumn() ] )) {
-            unset( $diffArray[ $model->getDeletedAtColumn() ] );
+        foreach ($dontVersionFields as $field) {
+            if (isset( $diffArray[ $field ] )) {
+                unset( $diffArray[ $field ] );
+            }
         }
 
         return $diffArray;
-    }
-
-    public function getConnectionName()
-    {
-        if (!isset( $this->connection )) {
-            $defaultConnection = Config::get( 'database.default' );
-            $connection        = Config::get( 'versionable.connection', $defaultConnection );
-
-            $this->setConnection( $connection );
-        }
-
-        return parent::getConnectionName();
     }
 }
