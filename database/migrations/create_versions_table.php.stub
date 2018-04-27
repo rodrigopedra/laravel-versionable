@@ -21,7 +21,7 @@ class CreateVersionsTable extends Migration
 
             $table->string( 'action', 20 );
             $table->unsignedBigInteger( 'user_id' )->nullable();
-            $table->json( 'model_data' );
+            $table->binary( 'model_data' );
             $table->string( 'reason', 100 )->nullable();
 
             $table->text( 'url' )->nullable();

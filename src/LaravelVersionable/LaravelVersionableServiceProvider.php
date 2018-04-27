@@ -16,7 +16,7 @@ class LaravelVersionableServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->mergeConfigFrom( __DIR__ . '/../../config/versionable.php', 'versionable' );
+        //
     }
 
     private function publishMigrations()

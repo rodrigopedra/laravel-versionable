@@ -4,7 +4,6 @@ use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Request;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 abstract class VersionableTestCase extends PHPUnitTestCase
@@ -16,7 +15,6 @@ abstract class VersionableTestCase extends PHPUnitTestCase
         $this->configureDatabase();
         $this->migrateUsersTable();
         $this->configureAppFacade();
-        $this->configureRequestFacade();
     }
 
     protected function configureDatabase()
@@ -67,19 +65,6 @@ abstract class VersionableTestCase extends PHPUnitTestCase
     private function configureAppFacade()
     {
         App::shouldReceive( 'runningInConsole' )
-            ->andReturn( false );
-    }
-
-    private function configureRequestFacade()
-    {
-        Request::shouldReceive( 'fullUrl' )
-            ->andReturn( 'http://example.com' );
-
-        Request::shouldReceive( 'ip' )
-            ->andReturn( '127.0.0.1' );
-
-        Request::shouldReceive( 'header' )
-            ->with( 'User-Agent' )
-            ->andReturn( 'Test Browser User Agent' );
+            ->andReturn( true );
     }
 }

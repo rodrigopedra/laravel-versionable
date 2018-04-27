@@ -12,18 +12,18 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 trait VersionableTrait
 {
     /**
-     * Optional reason, why this version was created
-     *
-     * @var string
-     */
-    private $versioningReason;
-
-    /**
      * Flag that determines if the model allows versioning at all
      *
      * @var bool
      */
     protected $versioningEnabled = true;
+
+    /**
+     * Optional reason, why this version was created
+     *
+     * @var string
+     */
+    protected $versioningReason;
 
     /**
      * Version factory helper
@@ -59,7 +59,7 @@ trait VersionableTrait
      */
     public function shouldCreateNewVersion()
     {
-        if ($this->versioningEnabled !== true) {
+        if (!$this->versioningEnabled) {
             return false;
         }
 
@@ -67,19 +67,9 @@ trait VersionableTrait
             return true;
         }
 
-        $removeableKeys = $this->getDontVersionFields();
+        $dontVersionFields = $this->getDontVersionFields();
 
-        return count( array_diff_key( $this->getDirty(), array_flip( $removeableKeys ) ) ) > 0;
-    }
-
-    /**
-     * @param VersionFactory $versionFactory |null
-     *
-     * @return void
-     */
-    public function setVersionFactory( VersionFactory $versionFactory = null )
-    {
-        $this->versionFactory = $versionFactory;
+        return count( array_diff_key( $this->getDirty(), array_flip( $dontVersionFields ) ) ) > 0;
     }
 
     /**
@@ -87,6 +77,11 @@ trait VersionableTrait
      */
     public function getVersionFactory()
     {
+        if (is_null( $this->versionFactory )) {
+            /** @var Versionable $this */
+            $this->versionFactory = new VersionFactory( $this );
+        }
+
         return $this->versionFactory;
     }
 
@@ -101,8 +96,8 @@ trait VersionableTrait
     }
 
     /**
-     * Attribute mutator for "versioningReason"
-     * Prevent "versioningReason" to become a database attribute of model
+     * Attribute mutator for "versioning_reason"
+     * Prevent "versioning_reason" to become a database attribute of model
      *
      * @param string $value
      */

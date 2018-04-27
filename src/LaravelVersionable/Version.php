@@ -27,7 +27,6 @@ class Version extends Eloquent
         'version_id'     => 'integer',
         'versionable_id' => 'integer',
         'user_id'        => 'integer',
-        'model_data'     => 'json',
     ];
 
     protected $fillable = [

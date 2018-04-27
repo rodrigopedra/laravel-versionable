@@ -14,15 +14,28 @@ class VersionFactory
     const ACTION_RESTORE = 'restore';
 
     /**
-     * Tells which action is being performed (create, update, delete, restore)
-     *
-     * @var string
+     * @var Versionable
      */
-    private $action;
+    protected $versionable;
 
-    public function __construct( string $action )
+    /**
+     * @var string|null
+     */
+    protected $action = null;
+
+    public function __construct( Versionable $versionable )
+    {
+        $this->versionable = $versionable;
+    }
+
+    public function setAction( $action )
     {
         $this->action = $action;
+    }
+
+    public function hasAction()
+    {
+        return !is_null( $this->action );
     }
 
     /**
@@ -35,6 +48,8 @@ class VersionFactory
     public function createNewVersion( Versionable $versionable )
     {
         if (!$versionable->shouldCreateNewVersion()) {
+            $this->action = null;
+
             return null;
         }
 
@@ -44,10 +59,12 @@ class VersionFactory
             'action'     => $this->action,
             'model_data' => $versionable->serializedAttributesForVersioning(),
             'reason'     => $versionable->getVersioningReason(),
-            'url'        => App::runningInConsole() ? 'console' : Request::fullUrl(),
-            'ip_address' => Request::ip(),
-            'user_agent' => Request::header( 'User-Agent' ),
+            'url'        => $this->getRequestUrl(),
+            'ip_address' => $this->getRequestIp(),
+            'user_agent' => $this->getRequestUserAgent(),
         ] );
+
+        $this->action = null;
 
         return $version;
     }
@@ -55,12 +72,48 @@ class VersionFactory
     /**
      * @return int|null
      */
-    private function getAuthUserId()
+    protected function getAuthUserId()
     {
         if (Auth::check()) {
             return Auth::id();
         }
 
         return null;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getRequestUrl()
+    {
+        if (App::runningInConsole()) {
+            return 'console';
+        }
+
+        return Request::fullUrl();
+    }
+
+    /**
+     * @return string|null
+     */
+    protected function getRequestIp()
+    {
+        if (App::runningInConsole()) {
+            return null;
+        }
+
+        return Request::ip();
+    }
+
+    /**
+     * @return string|null
+     */
+    protected function getRequestUserAgent()
+    {
+        if (App::runningInConsole()) {
+            return null;
+        }
+
+        return Request::header( 'User-Agent' );
     }
 }

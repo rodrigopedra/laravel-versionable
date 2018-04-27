@@ -31,13 +31,6 @@ interface Versionable
     public function shouldCreateNewVersion();
 
     /**
-     * @param VersionFactory|null $versionFactory
-     *
-     * @return void
-     */
-    public function setVersionFactory( VersionFactory $versionFactory = null );
-
-    /**
      * @return VersionFactory
      */
     public function getVersionFactory();

@@ -9,7 +9,7 @@ class VersionableObserver
      */
     public function creating( Versionable $versionable )
     {
-        $versionable->setVersionFactory( new VersionFactory( VersionFactory::ACTION_CREATE ) );
+        $versionable->getVersionFactory()->setAction( VersionFactory::ACTION_CREATE );
     }
 
     /**
@@ -17,12 +17,14 @@ class VersionableObserver
      */
     public function updating( Versionable $versionable )
     {
-        if (!is_null( $versionable->getVersionFactory() )) {
+        $versionFactory = $versionable->getVersionFactory();
+
+        if ($versionFactory->hasAction()) {
             // is probably deleting or restoring
             return;
         }
 
-        $versionable->setVersionFactory( new VersionFactory( VersionFactory::ACTION_UPDATE ) );
+        $versionFactory->setAction( VersionFactory::ACTION_UPDATE );
     }
 
     /**
@@ -30,7 +32,7 @@ class VersionableObserver
      */
     public function deleting( Versionable $versionable )
     {
-        $versionable->setVersionFactory( new VersionFactory( VersionFactory::ACTION_DELETE ) );
+        $versionable->getVersionFactory()->setAction( VersionFactory::ACTION_DELETE );
     }
 
     /**
@@ -38,7 +40,7 @@ class VersionableObserver
      */
     public function restoring( Versionable $versionable )
     {
-        $versionable->setVersionFactory( new VersionFactory( VersionFactory::ACTION_RESTORE ) );
+        $versionable->getVersionFactory()->setAction( VersionFactory::ACTION_RESTORE );
     }
 
     /**
@@ -46,7 +48,7 @@ class VersionableObserver
      */
     public function saved( Versionable $versionable )
     {
-        $this->createNewVersion( $versionable );
+        $versionable->getVersionFactory()->createNewVersion( $versionable );
     }
 
     /**
@@ -54,21 +56,6 @@ class VersionableObserver
      */
     public function deleted( Versionable $versionable )
     {
-        $this->createNewVersion( $versionable );
-    }
-
-    /**
-     * Execute the factory's createNewVersion method
-     *
-     * @param Versionable $versionable
-     */
-    private function createNewVersion( Versionable $versionable )
-    {
-        if (is_null( $versionFactory = $versionable->getVersionFactory() )) {
-            return;
-        }
-
-        $versionFactory->createNewVersion( $versionable );
-        $versionable->setVersionFactory( null );
+        $versionable->getVersionFactory()->createNewVersion( $versionable );
     }
 }
