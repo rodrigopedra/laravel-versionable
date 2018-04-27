@@ -73,6 +73,16 @@ trait VersionableTrait
     }
 
     /**
+     * Check if it should purge versions on delete
+     *
+     * @return bool
+     */
+    public function shouldPurgeVersionsOnDelete()
+    {
+        return $this->purgeVersionsOnDelete ?? false;
+    }
+
+    /**
      * @return VersionFactory
      */
     public function getVersionFactory()

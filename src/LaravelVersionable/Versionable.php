@@ -31,6 +31,13 @@ interface Versionable
     public function shouldCreateNewVersion();
 
     /**
+     * Check if it should purge versions on delete
+     *
+     * @return bool
+     */
+    public function shouldPurgeVersionsOnDelete();
+
+    /**
      * @return VersionFactory
      */
     public function getVersionFactory();

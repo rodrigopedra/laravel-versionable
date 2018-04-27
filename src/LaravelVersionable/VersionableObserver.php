@@ -32,7 +32,11 @@ class VersionableObserver
      */
     public function deleting( Versionable $versionable )
     {
-        $versionable->getVersionFactory()->setAction( VersionFactory::ACTION_DELETE );
+        $action = $this->isForceDeleting( $versionable )
+            ? VersionFactory::ACTION_DELETE
+            : VersionFactory::ACTION_SOFT_DELETE;
+
+        $versionable->getVersionFactory()->setAction( $action );
     }
 
     /**
@@ -48,7 +52,11 @@ class VersionableObserver
      */
     public function saved( Versionable $versionable )
     {
-        $versionable->getVersionFactory()->createNewVersion( $versionable );
+        if (!$versionable->shouldCreateNewVersion()) {
+            return;
+        }
+
+        $versionable->getVersionFactory()->createNewVersion();
     }
 
     /**
@@ -56,6 +64,21 @@ class VersionableObserver
      */
     public function deleted( Versionable $versionable )
     {
-        $versionable->getVersionFactory()->createNewVersion( $versionable );
+        if (!$versionable->shouldCreateNewVersion()) {
+            return;
+        }
+
+        if ($this->isForceDeleting( $versionable ) && $versionable->shouldPurgeVersionsOnDelete()) {
+            $versionable->getVersionFactory()->purgeVersions();
+
+            return;
+        }
+
+        $versionable->getVersionFactory()->createNewVersion();
+    }
+
+    protected function isForceDeleting( Versionable $versionable )
+    {
+        return !method_exists( $versionable, 'isForceDeleting' ) || $versionable->isForceDeleting();
     }
 }
