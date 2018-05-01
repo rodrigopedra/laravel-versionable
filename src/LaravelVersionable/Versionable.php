@@ -24,6 +24,16 @@ interface Versionable
     public function disableVersioning();
 
     /**
+     * @return $this
+     */
+    public function forceVersioningOnNextEvent();
+
+    /**
+     * @return $this
+     */
+    public function cancelForceVersioningOnNextEvent();
+
+    /**
      * Check if it should create a new version
      *
      * @return bool
@@ -67,6 +77,22 @@ interface Versionable
      * @return $this
      */
     public function unserializeAttributesFromVersoning( $serializedAttributes );
+
+    /**
+     * Get model's additional data serialized for versoning
+     *
+     * @return mixed
+     */
+    public function serializedAdditionalDataForVersioning();
+
+    /**
+     * Unserialize the model's additional data from versioning
+     *
+     * @param mixed $serializedData
+     *
+     * @return $this
+     */
+    public function unserializeAdditionalDataFromVersoning( $serializedData );
 
     /**
      * Get the attributes that have been changed since last sync.

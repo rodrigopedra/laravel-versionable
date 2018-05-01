@@ -2,6 +2,8 @@
 
 namespace RodrigoPedra\LaravelVersionable;
 
+use Illuminate\Support\Facades\Event;
+
 class VersionableObserver
 {
     /**
@@ -19,8 +21,7 @@ class VersionableObserver
     {
         $versionFactory = $versionable->getVersionFactory();
 
-        if ($versionFactory->hasAction()) {
-            // is probably deleting or restoring
+        if ($versionFactory->isDeleting() || $versionFactory->isRestoring()) {
             return;
         }
 

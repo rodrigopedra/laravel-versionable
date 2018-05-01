@@ -4,12 +4,16 @@ namespace RodrigoPedra\LaravelVersionable;
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Request;
 use RodrigoPedra\LaravelVersionable\Exceptions\InvalidActionForVersionException;
 use RodrigoPedra\LaravelVersionable\Exceptions\NoActionForVersionException;
+use RodrigoPedra\LaravelVersionable\Traits\HasAction;
 
 class VersionFactory
 {
+    use HasAction;
+
     const ACTION_CREATE      = 'create';
     const ACTION_UPDATE      = 'update';
     const ACTION_DELETE      = 'delete';
@@ -20,11 +24,6 @@ class VersionFactory
      * @var Versionable
      */
     private $versionable;
-
-    /**
-     * @var string|null
-     */
-    private $action = null;
 
     public function __construct( Versionable $versionable )
     {
@@ -88,15 +87,20 @@ class VersionFactory
             throw new NoActionForVersionException( 'An action should be set before creating a new version' );
         }
 
+        if (Event::dispatch( new VersioningEvent( $this->versionable, $this->action ) ) === false) {
+            return null;
+        }
+
         /** @var Version $version */
         $version = $this->versionable->versions()->create( [
-            'user_id'    => $this->getAuthUserId(),
-            'action'     => $this->action,
-            'model_data' => $this->versionable->serializedAttributesForVersioning(),
-            'reason'     => $this->versionable->getVersioningReason(),
-            'url'        => $this->getRequestUrl(),
-            'ip_address' => $this->getRequestIp(),
-            'user_agent' => $this->getRequestUserAgent(),
+            'user_id'         => $this->getAuthUserId(),
+            'action'          => $this->action,
+            'reason'          => $this->versionable->getVersioningReason(),
+            'url'             => $this->getRequestUrl(),
+            'ip_address'      => $this->getRequestIp(),
+            'user_agent'      => $this->getRequestUserAgent(),
+            'model_data'      => $this->versionable->serializedAttributesForVersioning(),
+            'additional_data' => $this->versionable->serializedAdditionalDataForVersioning(),
         ] );
 
         $this->resetAction();

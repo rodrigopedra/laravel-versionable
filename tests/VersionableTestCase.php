@@ -4,6 +4,7 @@ use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 abstract class VersionableTestCase extends PHPUnitTestCase
@@ -15,6 +16,7 @@ abstract class VersionableTestCase extends PHPUnitTestCase
         $this->configureDatabase();
         $this->migrateUsersTable();
         $this->configureAppFacade();
+        $this->configureEventFacade();
     }
 
     protected function configureDatabase()
@@ -45,18 +47,20 @@ abstract class VersionableTestCase extends PHPUnitTestCase
         } );
 
         DB::schema()->create( 'versions', function ( $table ) {
-            $table->increments( 'version_id' );
+            $table->bigIncrements( 'version_id' );
 
             $table->morphs( 'versionable' );
 
             $table->string( 'action', 20 );
-            $table->integer( 'user_id' )->nullable();
-            $table->binary( 'model_data' );
+            $table->unsignedBigInteger( 'user_id' )->nullable();
             $table->string( 'reason', 100 )->nullable();
 
             $table->text( 'url' )->nullable();
             $table->ipAddress( 'ip_address' )->nullable();
             $table->string( 'user_agent' )->nullable();
+
+            $table->binary( 'model_data' );
+            $table->binary( 'additional_data' )->nullable();
 
             $table->timestamps();
         } );
@@ -66,5 +70,12 @@ abstract class VersionableTestCase extends PHPUnitTestCase
     {
         App::shouldReceive( 'runningInConsole' )
             ->andReturn( true );
+    }
+
+    private function configureEventFacade()
+    {
+        Event::shouldReceive( 'dispatch' )
+            ->withAnyArgs()
+            ->andReturnTrue();
     }
 }

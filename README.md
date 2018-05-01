@@ -1,10 +1,9 @@
 # Versionable
 ## Easy to use Model versioning for Laravel 5.6
 
-> Fork of https://github.com/mpociot/versionable
+> Based on https://github.com/mpociot/versionable
 
 Keep track of all your model changes and revert to previous versions of it.
-
 
 ```php
 // Restore to the previous change
@@ -13,6 +12,8 @@ $content->previousVersion()->revert();
 // Get model from a version
 $oldModel = Version::find(100)->getModel();
 ```
+
+
 
 ## License
 

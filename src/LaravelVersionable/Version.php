@@ -32,11 +32,12 @@ class Version extends Eloquent
     protected $fillable = [
         'user_id',
         'action',
-        'model_data',
         'reason',
         'url',
         'ip_address',
         'user_agent',
+        'model_data',
+        'additional_data',
     ];
 
     /**
@@ -74,10 +75,15 @@ class Version extends Eloquent
             ? stream_get_contents( $this->model_data )
             : $this->model_data;
 
+        $additionalData = is_resource( $this->additional_data )
+            ? stream_get_contents( $this->additional_data )
+            : $this->additional_data;
+
         $modelClass = Relation::getMorphedModel( $this->versionable_type ) ?: $this->versionable_type;
 
-        return tap( new $modelClass, function ( Versionable $versionable ) use ( $modelData ) {
+        return tap( new $modelClass, function ( Versionable $versionable ) use ( $modelData, $additionalData ) {
             $versionable->unserializeAttributesFromVersoning( $modelData );
+            $versionable->unserializeAdditionalDataFromVersoning( $additionalData );
         } );
     }
 

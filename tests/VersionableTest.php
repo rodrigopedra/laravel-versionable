@@ -37,7 +37,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -53,7 +53,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -68,7 +68,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -84,7 +84,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -107,7 +107,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -128,7 +128,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'id' )
             ->andReturn( $userId );
 
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -183,7 +183,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestPartialVersionableUser();
+        $user             = new TestPartialVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -201,7 +201,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -219,7 +219,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user = new TestVersionableUser();
+        $user = new TestVersionableUser;
         $user->disableVersioning();
 
         $user->name       = 'Rodrigo';
@@ -245,7 +245,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user = new TestVersionableUser();
+        $user = new TestVersionableUser;
 
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
@@ -267,7 +267,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user = new TestVersionableUser();
+        $user = new TestVersionableUser;
 
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
@@ -295,7 +295,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user = new TestVersionableSoftDeleteUser();
+        $user = new TestVersionableSoftDeleteUser;
 
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
@@ -325,7 +325,7 @@ class VersionableTest extends VersionableTestCase
             ->andReturn( false );
 
         // Create 3 versions
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -351,7 +351,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user                    = new TestVersionableUser();
+        $user                    = new TestVersionableUser;
         $user->name              = 'Rodrigo';
         $user->email             = 'rodrigo@example.com';
         $user->password          = '12345';
@@ -367,7 +367,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableUser();
+        $user             = new TestVersionableUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -390,7 +390,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableIgnoresTimestampUser();
+        $user             = new TestVersionableIgnoresTimestampUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -417,7 +417,7 @@ class VersionableTest extends VersionableTestCase
             ->andReturn( false );
 
         // Create 3 versions
-        $user             = new TestVersionableSoftDeleteUser();
+        $user             = new TestVersionableSoftDeleteUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -453,7 +453,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionableSoftDeleteUser();
+        $user             = new TestVersionableSoftDeleteUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -485,7 +485,7 @@ class VersionableTest extends VersionableTestCase
         Auth::shouldReceive( 'check' )
             ->andReturn( false );
 
-        $user             = new TestVersionablePurgeVersionsOnDeleteUser();
+        $user             = new TestVersionablePurgeVersionsOnDeleteUser;
         $user->name       = 'Rodrigo';
         $user->email      = 'rodrigo@example.com';
         $user->password   = '12345';
@@ -502,6 +502,25 @@ class VersionableTest extends VersionableTestCase
         $user->forceDelete();
 
         $this->assertEquals( 0, $user->versions()->count() );
+    }
+
+    public function testSavesVersioningData()
+    {
+        Auth::shouldReceive( 'check' )
+            ->andReturn( false );
+
+        $user                  = new TestVersionableUser;
+        $user->name            = 'Rodrigo';
+        $user->email           = 'rodrigo@example.com';
+        $user->password        = '12345';
+        $user->last_login      = $user->freshTimestamp();
+        $user->versioning_data = [ 'a' => 1 ];
+        $user->save();
+
+        $user = $user->currentVersion()->getModel();
+
+        $this->assertArrayNotHasKey( 'versioning_data', $user->getAttributes() );
+        $this->assertEquals( $user->versioning_data, [ 'a' => 1 ] );
     }
 }
 

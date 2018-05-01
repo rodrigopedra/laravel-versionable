@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * Class VersionableTrait
  *
  * @package RodrigoPedra\LaravelVersionable
+ *
+ * @mixin \Illuminate\Database\Eloquent\Model
  */
 trait VersionableTrait
 {
@@ -19,11 +21,25 @@ trait VersionableTrait
     protected $versioningEnabled = true;
 
     /**
+     * Flag that determines if the model shoulkd create a new version on the nexte save/delete/restore
+     *
+     * @var bool
+     */
+    protected $forceVersioning = false;
+
+    /**
      * Optional reason, why this version was created
      *
      * @var string
      */
     protected $versioningReason;
+
+    /**
+     * Optional data, to be added to model adata when saving version
+     *
+     * @var string
+     */
+    protected $versioningData;
 
     /**
      * Version factory helper
@@ -53,12 +69,42 @@ trait VersionableTrait
     }
 
     /**
+     * Flag this model to create a versioning on the next save/restore/delete
+     *
+     * @return $this
+     */
+    public function forceVersioningOnNextEvent()
+    {
+        $this->forceVersioning = true;
+
+        return $this;
+    }
+
+    /**
+     * Unflag this model to create a versioning on the next save/restore/delete
+     *
+     * @return $this
+     */
+    public function cancelForceVersioningOnNextEvent()
+    {
+        $this->forceVersioning = false;
+
+        return $this;
+    }
+
+    /**
      * Check if it should create a new version
      *
      * @return bool
      */
     public function shouldCreateNewVersion()
     {
+        if ($this->forceVersioning) {
+            $this->forceVersioning = false;
+
+            return true;
+        }
+
         if (!$this->versioningEnabled) {
             return false;
         }
@@ -113,7 +159,48 @@ trait VersionableTrait
      */
     public function setVersioningReasonAttribute( $value )
     {
-        $this->versioningReason = $value;
+        $value = trim( $value );
+
+        $this->versioningReason = empty( $value ) ? null : $value;
+    }
+
+    /**
+     * Attribute accessor for "versioning_reason"
+     * Allows "versioning_reason" to be accessed as a regular attribute
+     *
+     * @return string|null
+     */
+    public function getVersioningReasonAttribute()
+    {
+        return $this->versioningReason;
+    }
+
+    /**
+     * Attribute mutator for "versioning_data"
+     * Prevent "versioning_data" to become a database attribute of model
+     *
+     * @param mixed $value
+     */
+    public function setVersioningDataAttribute( $value )
+    {
+        if (empty( $value )) {
+            $this->versioningData = null;
+
+            return;
+        }
+
+        $this->versioningData = $value;
+    }
+
+    /**
+     * Attribute accessor for "versioning_data"
+     * Allows "versioning_data" to be accessed as a regular attribute
+     *
+     * @return mixed
+     */
+    public function getVersioningDataAttribute()
+    {
+        return $this->versioningData;
     }
 
     /**
@@ -121,13 +208,7 @@ trait VersionableTrait
      */
     public function getVersioningReason()
     {
-        $versioningReason = trim( $this->versioningReason );
-
-        if (empty( $versioningReason )) {
-            return null;
-        }
-
-        return $versioningReason;
+        return $this->versioningReason;
     }
 
     /**
@@ -137,7 +218,9 @@ trait VersionableTrait
      */
     public function serializedAttributesForVersioning()
     {
-        return serialize( $this->getAttributes() );
+        $attributes = $this->getAttributes();
+
+        return serialize( $attributes );
     }
 
     /**
@@ -149,8 +232,50 @@ trait VersionableTrait
      */
     public function unserializeAttributesFromVersoning( $serializedAttributes )
     {
-        $this->forceFill( unserialize( $serializedAttributes ) );
+        $attributes = unserialize( $serializedAttributes );
+
+        if (array_key_exists( 'versioning_data', $attributes )) {
+            $this->versioningData = $attributes[ 'versioning_data' ];
+        } else {
+            $this->versioningData = null;
+        }
+
+        unset( $attributes[ 'versioning_data' ] );
+
+        $this->forceFill( $attributes );
         $this->exists = true;
+
+        return $this;
+    }
+
+    /**
+     * Get model's additional data serialized for versoning
+     *
+     * @return mixed
+     */
+    public function serializedAdditionalDataForVersioning()
+    {
+        $additionalData = $this->versioningData;
+
+        if (is_null( $additionalData )) {
+            return null;
+        }
+
+        return serialize( $additionalData );
+    }
+
+    /**
+     * Unserialize the model's additional data from versioning
+     *
+     * @param mixed $serializedData
+     *
+     * @return $this
+     */
+    public function unserializeAdditionalDataFromVersoning( $serializedData )
+    {
+        $additionalData = unserialize( $serializedData );
+
+        $this->versioningData = $additionalData;
 
         return $this;
     }
