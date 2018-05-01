@@ -1,5 +1,6 @@
 # The MIT License (MIT)
 
+Copyright (c) 2018 Rodrigo Pedra Brum <rodrigo.pedra@gmail.com>  
 Copyright (c) 2015 Marcel Pociot <m.pociot@gmail.com>
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
