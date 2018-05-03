@@ -87,7 +87,15 @@ class VersionFactory
             throw new NoActionForVersionException( 'An action should be set before creating a new version' );
         }
 
-        if (Event::dispatch( new VersioningEvent( $this->versionable, $this->action ) ) === false) {
+        if (Event::dispatch( new CreatingVersion( $this->versionable, $this->action ) ) === false) {
+            $this->resetAction();
+
+            return null;
+        }
+
+        if (!$this->versionable->shouldCreateNewVersion()) {
+            $this->resetAction();
+
             return null;
         }
 
@@ -103,6 +111,8 @@ class VersionFactory
             'additional_data' => $this->versionable->serializedAdditionalDataForVersioning(),
         ] );
 
+        Event::dispatch( new CreatedVersion( $this->versionable, $this->action ) );
+
         $this->resetAction();
 
         return $version;
@@ -116,6 +126,8 @@ class VersionFactory
     public function purgeVersions()
     {
         $this->versionable->versions()->delete();
+
+        $this->resetAction();
 
         return $this;
     }

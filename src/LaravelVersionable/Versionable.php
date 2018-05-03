@@ -24,14 +24,14 @@ interface Versionable
     public function disableVersioning();
 
     /**
+     * Run a callback where a new version will be created on any save operation despite
+     * any versioning criteria
+     *
+     * @param callable $callback
+     *
      * @return $this
      */
-    public function forceVersioningOnNextEvent();
-
-    /**
-     * @return $this
-     */
-    public function cancelForceVersioningOnNextEvent();
+    public function forceVersioning( callable $callback );
 
     /**
      * Check if it should create a new version

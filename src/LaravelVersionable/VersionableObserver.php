@@ -2,8 +2,6 @@
 
 namespace RodrigoPedra\LaravelVersionable;
 
-use Illuminate\Support\Facades\Event;
-
 class VersionableObserver
 {
     /**
@@ -12,20 +10,6 @@ class VersionableObserver
     public function creating( Versionable $versionable )
     {
         $versionable->getVersionFactory()->setAction( VersionFactory::ACTION_CREATE );
-    }
-
-    /**
-     * @param Versionable $versionable
-     */
-    public function updating( Versionable $versionable )
-    {
-        $versionFactory = $versionable->getVersionFactory();
-
-        if ($versionFactory->isDeleting() || $versionFactory->isRestoring()) {
-            return;
-        }
-
-        $versionFactory->setAction( VersionFactory::ACTION_UPDATE );
     }
 
     /**
@@ -43,6 +27,22 @@ class VersionableObserver
     /**
      * @param Versionable $versionable
      */
+    public function saving( Versionable $versionable )
+    {
+        $versionFactory = $versionable->getVersionFactory();
+
+        if ($versionFactory->hasAction()) {
+            // probably doing an action such as soft delete or restore
+
+            return;
+        }
+
+        $versionFactory->setAction( VersionFactory::ACTION_UPDATE );
+    }
+
+    /**
+     * @param Versionable $versionable
+     */
     public function restoring( Versionable $versionable )
     {
         $versionable->getVersionFactory()->setAction( VersionFactory::ACTION_RESTORE );
@@ -53,10 +53,6 @@ class VersionableObserver
      */
     public function saved( Versionable $versionable )
     {
-        if (!$versionable->shouldCreateNewVersion()) {
-            return;
-        }
-
         $versionable->getVersionFactory()->createNewVersion();
     }
 
@@ -65,10 +61,6 @@ class VersionableObserver
      */
     public function deleted( Versionable $versionable )
     {
-        if (!$versionable->shouldCreateNewVersion()) {
-            return;
-        }
-
         if ($this->isForceDeleting( $versionable ) && $versionable->shouldPurgeVersionsOnDelete()) {
             $versionable->getVersionFactory()->purgeVersions();
 

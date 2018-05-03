@@ -522,6 +522,38 @@ class VersionableTest extends VersionableTestCase
         $this->assertArrayNotHasKey( 'versioning_data', $user->getAttributes() );
         $this->assertEquals( $user->versioning_data, [ 'a' => 1 ] );
     }
+
+    public function testForceVersioning()
+    {
+        Auth::shouldReceive( 'check' )
+            ->andReturn( false );
+
+        $user                  = new TestVersionableUser;
+        $user->name            = 'Rodrigo';
+        $user->email           = 'rodrigo@example.com';
+        $user->password        = '12345';
+        $user->last_login      = $user->freshTimestamp();
+        $user->versioning_data = [ 'a' => 1 ];
+        $user->save();
+
+        // touch does not create a new version as it only updates the updated_at attribute
+        $user->touch();
+
+        $this->assertEquals( 1, $user->versions()->count() );
+
+        $user->forceVersioning( function ( TestVersionableUser $user ) {
+            // when using this callback a new version is created
+            // regardless of any other configuration
+            $user->touch();
+        } );
+
+        $this->assertEquals( 2, $user->versions()->count() );
+
+        // force versioning should be disabled outside the callback
+        $user->touch();
+
+        $this->assertEquals( 2, $user->versions()->count() );
+    }
 }
 
 /**

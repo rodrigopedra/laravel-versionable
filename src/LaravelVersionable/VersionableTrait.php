@@ -69,24 +69,19 @@ trait VersionableTrait
     }
 
     /**
-     * Flag this model to create a versioning on the next save/restore/delete
+     * Run a callback where a new version will be created on any save operation despite
+     * any versioning criteria
+     *
+     * @param callable $callback
      *
      * @return $this
      */
-    public function forceVersioningOnNextEvent()
+    public function forceVersioning( callable $callback )
     {
         $this->forceVersioning = true;
 
-        return $this;
-    }
+        $callback( $this );
 
-    /**
-     * Unflag this model to create a versioning on the next save/restore/delete
-     *
-     * @return $this
-     */
-    public function cancelForceVersioningOnNextEvent()
-    {
         $this->forceVersioning = false;
 
         return $this;
@@ -100,8 +95,6 @@ trait VersionableTrait
     public function shouldCreateNewVersion()
     {
         if ($this->forceVersioning) {
-            $this->forceVersioning = false;
-
             return true;
         }
 

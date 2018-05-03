@@ -4,7 +4,7 @@ namespace RodrigoPedra\LaravelVersionable;
 
 use RodrigoPedra\LaravelVersionable\Traits\HasAction;
 
-class VersioningEvent
+class CreatingVersion
 {
     use HasAction;
 
